@@ -1542,3 +1542,31 @@ mark.marker, .marker { background: linear-gradient(100deg, transparent 2%, rgba(
   #bowlTags .v, #ckTags .v, #keyTags .v { margin-left: auto; font-size: .86rem; }
   .bowl-card .v-title, .ck-card .v-title { font-size: 1.12rem; }
 }
+
+/* máy tính: folder đóng gọn lại, nắp xanh che nửa dưới các xấp ảnh */
+.board.closed { height: 460px; }
+.board.closed .folder-back { height: 76%; }
+.board.closed .folder-front { top: 42%; height: 48%; }
+.board.closed .f-hint { bottom: 12%; }
+/* màn hẹp: folder đóng gọn lại, nắp xanh che nửa dưới các xấp ảnh */
+@media (max-width: 640px) {
+  .board.closed { height: 470px; }
+  .board.closed .folder-back { top: 16%; height: 78%; }
+  .board.closed .folder-front { top: 36%; height: 58%; }
+  .board.closed .f-hint { bottom: 14%; font-size: 1.4rem; }
+}
+
+/* xấp ảnh mở ra (màn hẹp): nút xáo lại / đóng lại nằm bên phải */
+@media (max-width: 640px) {
+  .desk-btns { margin-left: auto; justify-content: flex-end; }
+}
+/* thanh nút trong xấp ảnh luôn nằm trên cùng khi cuộn, nền đặc */
+.desk-bar { z-index: 60; background: var(--paper, #fbfbfa); box-shadow: 0 6px 10px -8px rgba(64, 42, 33, .25); }
+@media (max-width: 640px) {
+  .board.closed { height: 420px; }
+  .board.closed .folder-back { top: 18%; height: 74%; }
+  .board.closed .folder-front { top: 40%; height: 48%; }
+  .board.closed .f-hint { bottom: 10%; font-size: 1.25rem; }
+  .board.closed .folder-front .f-tag .v-title { font-size: 1.45rem; margin-bottom: 4px; }
+}
+.desk-bar { box-shadow: 0 -14px 0 var(--paper, #fbfbfa), 0 6px 10px -8px rgba(64, 42, 33, .25); }
