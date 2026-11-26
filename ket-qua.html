@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kết quả đặt hàng — intoPaws Studio</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="images/logo-main.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Meow+Script&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=57">
+</head>
+<body>
+<header class="topbar"><a href="./" class="brand" aria-label="intoPaws Studio, về trang chủ"><img src="images/logo-main.svg" alt="intoPaws" width="66" height="38"></a></header>
+<main class="result" id="result">
+  <div class="spinner"></div>
+  <p>Shop đang kiểm tra thanh toán của bạn…</p>
+</main>
+<script src="config.js?v=57"></script>
+<script>
+(function () {
+  const C = window.INTOPAWS, box = document.getElementById("result");
+  const q = new URLSearchParams(location.search);
+  let code = q.get("orderCode");
+  try { code = code || localStorage.getItem("ip_last_order"); } catch (e) {}
+  const contact = `<a href="${C.contact.zalo}">Zalo ${C.contact.zaloNumber}</a> hoặc <a href="${C.contact.instagram}">IG @intopaws.studio</a>`;
+
+  function show(html) { box.innerHTML = html; }
+  function success(d) {
+    try { localStorage.removeItem("ip_cart"); localStorage.removeItem("ip_last_order"); } catch (e) {}
+    show(`<figure class="frame polaroid"><img src="images/hero-meo-an.jpg" alt=""><figcaption>cảm ơn bạn nhen!</figcaption></figure>
+      <h1 class="title" style="font-size:3.4rem">đặt hàng thành công</h1>
+      <div class="box">
+        <p><b>Mã đơn:</b> ${d.orderCode}</p>
+        <p><b>Đã thanh toán:</b> ${Number(d.amount || 0).toLocaleString("vi-VN")}đ</p>
+        <p>Shop sẽ nhắn bạn qua <b>${d.social || "IG/Zalo"}</b> để xác nhận đơn${d.hasCustom ? " và gửi bản vẽ Pet Design để bạn duyệt" : ""} nhen 🩵</p>
+        <p class="small">Cần hỏi gì thêm, bạn nhắn ${contact} kèm mã đơn nhé.</p>
+      </div>
+      <p style="margin-top:1.5rem"><a class="btn" href="./">Về trang chủ</a></p>`);
+  }
+  function cancelled() {
+    show(`<h1 class="title" style="font-size:3rem">chưa thanh toán</h1>
+      <div class="box"><p>Đơn ${code || ""} chưa được thanh toán hoặc đã huỷ. Giỏ hàng của bạn vẫn còn nguyên, bạn có thể đặt lại bất cứ lúc nào nhen 🥺</p>
+      <p class="small">Nếu bạn đã chuyển khoản mà vẫn thấy trang này, nhắn ngay ${contact} kèm mã đơn để shop kiểm tra.</p></div>
+      <p style="margin-top:1.5rem"><a class="btn" href="./">Quay lại giỏ hàng</a></p>`);
+  }
+  function waiting() {
+    show(`<div class="spinner"></div><p>Shop chưa nhận được tiền của đơn ${code}. Nếu bạn vừa chuyển khoản, đợi một chút nhen…</p>
+      <p class="small">Trang tự kiểm tra lại. Quá 10 phút vẫn chưa xong, bạn nhắn ${contact}.</p>`);
+  }
+
+  // Chế độ nhắn tin: đơn đã ghi nhận, shop sẽ nhắn khách để xác nhận và gửi thông tin chuyển khoản
+  if (q.get("chat") && code) {
+    try { localStorage.removeItem("ip_cart"); localStorage.removeItem("ip_last_order"); } catch (e) {}
+    document.title = "Đặt hàng thành công — intoPaws Studio";
+    show(`<figure class="frame polaroid"><img src="images/hero-meo-an.jpg" alt=""><figcaption>cảm ơn bạn nhen!</figcaption></figure>
+      <h1 class="title" style="font-size:3.4rem">đặt hàng thành công</h1>
+      <div class="box">
+        <p><b>Mã đơn:</b> ${String(code).replace(/\D/g, "")}</p>
+        <p>Shop sẽ nhắn bạn qua <b>IG/Zalo</b> bạn đã để lại để xác nhận đơn và gửi thông tin chuyển khoản nhen 🩵</p>
+        <p class="small">Cần hỏi gì thêm, bạn nhắn ${contact} kèm mã đơn nhé.</p>
+      </div>
+      <p style="margin-top:1.5rem"><a class="btn" href="./">Về trang chủ</a></p>`);
+    return;
+  }
+  if (!code) { cancelled(); return; }
+  let tries = 0;
+  async function check() {
+    tries++;
+    try {
+      const r = await fetch(`${C.API_URL}?action=checkOrder&orderCode=${encodeURIComponent(code)}`);
+      const d = await r.json();
+      if (d.status === "PAID") return success(d);
+      if (d.status === "CANCELLED" || d.status === "EXPIRED") return cancelled();
+      waiting();
+    } catch (e) { if (tries > 3) return show(`<p>Không kiểm tra được thanh toán lúc này. Bạn nhắn ${contact} kèm mã đơn <b>${code}</b> để shop xác nhận nhen.</p>`); }
+    if (tries < 40) setTimeout(check, 8000);
+  }
+  if (q.get("cancel") === "true" && q.get("status") !== "PAID") { cancelled(); } else { check(); }
+})();
+</script>
+</body>
+</html>
