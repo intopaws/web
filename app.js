@@ -35,7 +35,7 @@
 
   /* ============ dải tên chạy ngang ============ */
   const MQ = [["bát bông", 319000, "#bat", "bat-bong"], ["bát ngôi sao", 289000, "#bat", "bat-sao"], ["bát jelly", 329000, "#bat", "bat-jelly"],
-    ["keychain thủ công", 199000, "#cookie", null, "moc-khoa-resin"], ["móc khoá cookie", 97000, "#cookie", null, "san-moc-khoa"],
+    ["keychain custom", 199000, "#keychain"], ["móc khoá cookie", 97000, "#cookie", null, "san-moc-khoa"],
     ["pop socket cookie", 110000, "#cookie", null, "san-pop"], ["noel charm", 129000, "#noel"]];
   const mqHTML = dup => MQ.map(([n, p, href, bowl, pick]) =>
     `<a href="${href}" class="${dup ? "dup" : ""}"${bowl ? ` data-bowl="${bowl}"` : ""}${pick ? ` data-pick="${pick}"` : ""}${dup ? ' aria-hidden="true" tabindex="-1"' : ""}>${esc(n)}<sup>[ ${k(p)} ]</sup></a>`).join("");
@@ -68,8 +68,8 @@
   });
   // đồ lặt vặt trên bàn: chỉ ảnh rời và vài ngôi sao đơn giản tô đặc
   const LOOSE = [
-    ["snap", "images/home/noel-7580.jpg"], ["snap", "images/home/feedback-3.jpg"], ["snap", "images/home/key-4.jpg"],
-    ["snap", "images/home/bat-f.jpg"], ["snap", "images/home/ck-c.jpg"], ["snap", "images/home/feedback-5.jpg"],
+    ["snap", "images/home/noel-7580.jpg"], ["snap", "images/feedback/fb-3.jpg"], ["snap", "images/gallery/key-9.jpg"],
+    ["snap", "images/home/bat-f.jpg"], ["snap", "images/home/ck-c.jpg"], ["snap", "images/feedback/fb-6.jpg"],
     ["star-s", "#C9A882"], ["star-s", "#B3C4CE"], ["star-s", "#A6886B"], ["star-s", "#738E9D"]
   ];
   const loose = LOOSE.map(([cls, val]) => {
@@ -321,73 +321,75 @@
 
   /* ============ tất cả sản phẩm ============ */
   $("#overview").innerHTML = C.overview.map((o, i) => `
-    <a class="ov-card cat-${{ "#bat": "bat", "#cookie": "ck", "#noel": "noel" }[o.href] || "bat"}" href="${o.href}"${o.bowl ? ` data-bowl="${o.bowl}"` : ""}${o.pick ? ` data-pick="${o.pick}"` : ""} style="--r:${[-1.5, 1, -.8, 1.4, -1, .8, -1.2][i % 7]}deg">
+    <a class="ov-card cat-${{ "#bat": "bat", "#keychain": "key", "#cookie": "ck", "#noel": "noel" }[o.href] || "bat"}" href="${o.href}"${o.bowl ? ` data-bowl="${o.bowl}"` : ""}${o.pick ? ` data-pick="${o.pick}"` : ""} style="--r:${[-1.5, 1, -.8, 1.4, -1, .8, -1.2][i % 7]}deg">
       <span class="ov-img"><img src="${o.img}" alt="" loading="lazy"></span>
       <span class="ov-name">${esc(o.name)}</span>
       <span class="ov-note">${esc(o.note)}</span>
       <span class="ov-row"><span class="ov-price">${esc(o.price)}</span><span class="ov-go mono">xem &amp; đặt →</span></span>
     </a>`).join("");
 
-  // mục "tất cả sản phẩm" đóng sẵn, bấm mới mở
-  const ovToggle = $("#ovToggle"), ovBody = $("#ovBody");
-  function setOverview(open) {
-    ovBody.hidden = !open;
-    ovToggle.setAttribute("aria-expanded", String(open));
-    $("#ovBtnTxt").textContent = open ? "thu gọn −" : "mở ra +";
-    if (open) $$(".ov-card", ovBody).forEach((c, i) => anim(c, [{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: `rotate(${c.style.getPropertyValue("--r")})` }], { duration: 320, delay: i * 40, easing: "ease-out", fill: "backwards" }));
-  }
-  ovToggle.onclick = () => setOverview(ovBody.hidden);
-  // link tới #tat-ca (menu "sản phẩm", nút "xem tất cả") thì mở luôn
-  document.addEventListener("click", e => { if (e.target.closest('a[href="#tat-ca"]')) setOverview(true); });
+  const ovBody = $("#ovBody");
 
-  /* ============ menu: đánh dấu mục đang xem ============ */
+  /* ============ các trang riêng: mỗi lúc chỉ hiện một trang ============ */
+  const PAGES = [
+    ["top", "trang chủ"], ["tat-ca", "tất cả sản phẩm"], ["bat", "bát ăn"],
+    ["keychain", "keychain custom"], ["cookie", "cookie"], ["noel", "noel"], ["dat-hang", "cách đặt hàng"]
+  ];
+  const PAGE_IDS = PAGES.map(p => p[0]);
   const menuLinks = $$("#menu a");
+  const baseTitle = document.title;
+  let curPage = null;
   function markMenu(id) {
     menuLinks.forEach(a => { if (a.dataset.nav === id) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     const cur = menuLinks.find(a => a.dataset.nav === id);
     const m = $("#menu");
     if (cur && m.scrollWidth > m.clientWidth) m.scrollLeft = cur.offsetLeft - m.clientWidth / 2 + cur.offsetWidth / 2;
+    if (cur) $("#menuCur").textContent = cur.textContent;
+    setMenu(false);
   }
-  // khi cuộn: lên đầu trang → "trang chủ", tới phần tất cả sản phẩm → "tất cả sản phẩm", tới khu tab → tab đang mở
-  const watch = [["top", $("#top")], ["tat-ca", $("#tat-ca")], ["shop", $(".shop")]];
-  if ("IntersectionObserver" in window) {
-    const seen = new Map();
-    const io2 = new IntersectionObserver(es => {
-      es.forEach(en => seen.set(en.target, en.isIntersecting ? en.intersectionRatio : 0));
-      let best = null, v = 0;
-      watch.forEach(([id, el]) => { const r = seen.get(el) || 0; if (r > v) { v = r; best = id; } });
-      if (best) markMenu(best === "shop" ? (tabs.find(t => t.getAttribute("aria-selected") === "true") || tabs[0]).getAttribute("aria-controls") : best);
-    }, { threshold: [0, .15, .3, .6] });
-    watch.forEach(([, el]) => io2.observe(el));
+  // điện thoại: menu xổ dọc từ nút "menu"
+  const topbar = $(".topbar"), menuBtn = $("#menuBtn");
+  function setMenu(open) {
+    topbar.classList.toggle("menu-open", open);
+    menuBtn.setAttribute("aria-expanded", String(open));
   }
-
-  /* ============ tab sản phẩm ============ */
-  const tabs = $$("#tabs [role=tab]"), PANELS = tabs.map(t => t.getAttribute("aria-controls"));
-  function showTab(id) {
-    if (!PANELS.includes(id)) return false;
-    tabs.forEach(t => { const on = t.getAttribute("aria-controls") === id; t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; });
-    PANELS.forEach(p => { $("#" + p).hidden = p !== id; });
-    // chuyển tab: chỉ hiện mờ dần thật nhẹ
-    anim($("#" + id), [{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+  menuBtn.onclick = e => { e.stopPropagation(); setMenu(!topbar.classList.contains("menu-open")); };
+  document.addEventListener("click", e => { if (!e.target.closest(".topbar")) setMenu(false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && topbar.classList.contains("menu-open")) { setMenu(false); menuBtn.focus(); } });
+  function renderPager(id) {
+    const i = PAGE_IDS.indexOf(id), prev = PAGES[i - 1], next = PAGES[i + 1];
+    $("#pager").innerHTML =
+      (prev ? `<a class="pg prev" href="#${prev[0]}"><small>trang trước</small>← ${esc(prev[1])}</a>` : "<span></span>") +
+      (next ? `<a class="pg next" href="#${next[0]}"><small>trang sau</small>${esc(next[1])} →</a>` : "<span></span>");
+  }
+  function showPage(id, scroll = true) {
+    if (!PAGE_IDS.includes(id)) id = "top";
+    const changed = id !== curPage;
+    curPage = id;
+    $$("[data-page]").forEach(p => { p.hidden = p.dataset.page !== id; });
+    $(".shop").hidden = !["bat", "keychain", "cookie", "noel", "dat-hang"].includes(id);
+    const el = $("#" + id);
+    if (changed) anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
     markMenu(id);
-    // khung trong tab vừa mở: hiện luôn, không chờ trình duyệt báo cuộn
-    $$("#" + id + " .reveal:not(.in)").forEach(el => el.classList.add("in"));
+    renderPager(id);
+    const name = PAGES.find(p => p[0] === id)[1];
+    document.title = id === "top" ? baseTitle : name + " · intoPaws Studio";
+    // khung trong trang vừa mở: hiện luôn, không chờ trình duyệt báo cuộn
+    $$("#" + id + " .reveal:not(.in)").forEach(x => x.classList.add("in"));
     if (id === "noel") noelSeen();
-    return true;
+    if (id === "tat-ca" && changed) $$(".ov-card", ovBody).forEach((c, i) => anim(c, [{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: `rotate(${c.style.getPropertyValue("--r")})` }], { duration: 320, delay: i * 40, easing: "ease-out", fill: "backwards" }));
+    // folder cần đo lại kích thước khi trang chủ hiện ra
+    if (id === "top" && changed) window.dispatchEvent(new Event("resize"));
+    if (scroll) window.scrollTo({ top: 0, behavior: "auto" });
   }
   function goTo(hash) {
-    const id = (hash || "").replace("#", "");
-    if (id === "top") { window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }); return; }
-    if (showTab(id)) $("#tabs").scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    const id = (hash || "").replace("#", "") || "top";
+    if (("#" + id) !== location.hash) history.pushState(null, "", "#" + id);
+    showPage(id);
   }
-  tabs.forEach((t, i) => {
-    t.onclick = () => showTab(t.getAttribute("aria-controls"));
-    t.onkeydown = e => {
-      const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-      if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); n.click(); }
-    };
-  });
-  // link #bat/#cookie/#noel/#dat-hang mở đúng tab; data-bowl / data-pick chọn sẵn món
+  window.addEventListener("popstate", () => showPage(location.hash.slice(1)));
+  window.addEventListener("hashchange", () => showPage(location.hash.slice(1)));
+  // link #bat/#cookie/#noel/#dat-hang/#tat-ca mở đúng trang; data-bowl / data-pick chọn sẵn món
   document.addEventListener("click", e => {
     const a = e.target.closest("a[href^='#']");
     if (!a) return;
@@ -395,7 +397,7 @@
     if (a.dataset.pick) choosePrice(a.dataset.pick);
     if (a.closest("#desk")) return;
     const id = a.getAttribute("href").slice(1);
-    if (PANELS.includes(id) || id === "top") { e.preventDefault(); goTo("#" + id); }
+    if (PAGE_IDS.includes(id)) { e.preventDefault(); goTo("#" + id); }
   });
 
   /* ============ ảnh tham khảo + xem ảnh lớn ============ */
@@ -434,13 +436,12 @@
   function paintCookieNote(pid) {
     const row = pid && C.cookieRows.find(r => r.custom === pid || r.ready === pid);
     const price = id => id ? k(byId(id).price) : "–";
-    let name = "cookie & keychain", rows, tag = "từ 97K";
+    let name = "cookie", rows, tag = "từ 97K";
     if (!row) rows = [["mẫu sẵn", "13 bé cún & mèo"], ["vẽ theo bé", "từ ảnh bạn gửi"], ["nền kem", "6 hoạ tiết · 14 màu"], ["đế bánh", "nâu hoặc kem"], ["hoàn thiện", "4–7 ngày"]];
     else {
       name = row.label.toLowerCase();
       rows = [["vẽ theo bé", price(row.custom)], ["mẫu sẵn", price(row.ready)]];
       if (row.sub === "có click") rows.push(["có", "click"]);
-      if (row.custom === "moc-khoa-resin") rows.push(["chất liệu", "resin vẽ tay"], ["vẽ từ", "ảnh bé bạn gửi"]);
       if (row.cream) rows.push(["nền kem", "6 hoạ tiết · 14 màu"], ["đế bánh", "nâu hoặc kem"]);
       rows.push(["duyệt bản vẽ", "trước khi làm"], ["hoàn thiện", "4–7 ngày"]);
       tag = k(byId(pid).price);
@@ -548,11 +549,22 @@
     const l = (.299 * (n >> 16 & 255) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255;
     return l > .62 ? "#3E2A21" : "#fff";
   };
-  $$(".swlist").forEach(box => {
-    const part = box.dataset.part;
-    box.innerHTML = COLORS.map(c => `<button type="button" class="sw-item" role="radio" aria-checked="false" data-c="${esc(c.name)}" style="--c:${c.hex};--ink:${inkOn(c.hex)}"><span class="sw-hl">${esc(c.name)}</span></button>`).join("");
-    box.querySelectorAll(".sw-item").forEach(sw => sw.onclick = () => { bs[part] = sw.dataset.c; paintMix(); });
-  });
+  // danh sách màu theo dáng bát (Jelly có màu đế riêng)
+  const colorsFor = (b, part) => {
+    const names = part === "topColor" ? b.tops : b.bases;
+    return names ? names.map(colorBy).filter(Boolean) : COLORS.filter(c => !c.extra);
+  };
+  let swFor = "";
+  function renderSwatches(b) {
+    if (swFor === b.id) return;
+    swFor = b.id;
+    $$(".swlist").forEach(box => {
+      const part = box.dataset.part, list = colorsFor(b, part);
+      if (!list.some(c => c.name === bs[part])) bs[part] = (part === "baseColor" && b.bases ? list[0] : list.find(c => c.name === "Hồng") || list[0]).name;
+      box.innerHTML = list.map(c => `<button type="button" class="sw-item" role="radio" aria-checked="false" data-c="${esc(c.name)}" style="--c:${c.hex};--ink:${inkOn(c.hex)}"><span class="sw-hl">${esc(c.name)}</span></button>`).join("");
+      box.querySelectorAll(".sw-item").forEach(sw => sw.onclick = () => { bs[part] = sw.dataset.c; paintMix(); });
+    });
+  }
 
   function selectBowl(id) {
     const b = bowlOf(id); if (!b) return;
@@ -568,6 +580,7 @@
     ].map(([k2, v]) => `<li><span class="k">${esc(k2)}</span><span class="v">${esc(v)}</span></li>`).join("");
     $("#bowlPriceTag").textContent = p.price.toLocaleString("vi-VN") + " đ";
     popNote($(".bowl-stage:not(.ck-stage) .bowl-card"), $("#bowlPriceTag"));
+    renderSwatches(b);
     paintMix(); updateBowlTotal();
   }
 
@@ -576,11 +589,14 @@
     const b = bowlOf(bs.id), t = colorBy(bs.topColor), d = colorBy(bs.baseColor);
     const box = $("#mixPhoto"), top = $("#mixTop"), base = $("#mixBase"), note = $("#mixNote");
     let mode = b.mix, msg = "";
-    if (mode === "combo" && (t.slug === "trang" || d.slug === "trang")) { mode = "split"; msg = "Dáng Ngôi Sao chưa có ảnh màu trắng, ảnh đang minh hoạ trên dáng Bông."; }
+    if ((mode === "combo" || mode === "solid") && (t.slug === "trang" || d.slug === "trang")) { mode = "split"; msg = "Dáng Ngôi Sao chưa có ảnh màu trắng, ảnh đang minh hoạ trên dáng Bông."; }
     if (mode === "none") { mode = "split"; msg = `Ảnh phối màu minh hoạ trên dáng Bông, màu trên ${b.short} tương tự nhé.`; }
-    const srcTop = mode === "combo" ? `images/mix/sao/${t.slug}--${d.slug}.jpg` : `images/mix/bong/top-${t.slug}.jpg`;
-    const srcBase = mode === "combo" ? srcTop : `images/mix/bong/base-${d.slug}.jpg`;
+    // "solid": ảnh bát một màu (images/mix/sao2/<màu>.jpg), ghép nửa trên màu A + nửa dưới màu B
+    const srcTop = mode === "jelly" ? `images/mix/jelly/${t.slug}--${d.slug}.jpg` : mode === "combo" ? `images/mix/sao/${t.slug}--${d.slug}.jpg` : mode === "solid" ? `images/mix/sao2/${t.slug}.jpg` : `images/mix/bong/top-${t.slug}.jpg`;
+    const srcBase = mode === "combo" || mode === "jelly" ? srcTop : mode === "solid" ? `images/mix/sao2/${d.slug}.jpg` : `images/mix/bong/base-${d.slug}.jpg`;
     box.classList.toggle("is-sao", mode === "combo");
+    box.classList.toggle("is-sao2", mode === "solid");
+    box.classList.toggle("is-jelly", mode === "jelly");
     const topChanged = !top.src.endsWith(srcTop), baseChanged = !base.src.endsWith(srcBase);
     if (topChanged) { top.src = srcTop; anim(top.parentElement, [{ transform: "translateX(-22px) rotate(-1.5deg)", opacity: .3 }, { transform: "rotate(-.6deg)", opacity: 1 }], { duration: 420, easing: "cubic-bezier(.2,.8,.2,1)" }); }
     if (baseChanged) { base.src = srcBase; anim(base.parentElement, [{ transform: "translate(22px,4px) rotate(2deg)", opacity: .3 }, { transform: "translate(4px,3px) rotate(.6deg)", opacity: 1 }], { duration: 420, easing: "cubic-bezier(.2,.8,.2,1)" }); }
@@ -620,7 +636,8 @@
   const placeGuide = () => {
     const b = $(".pbtn[data-pid]", pWrap); if (!b || !b.offsetWidth) return;
     const w = pWrap.getBoundingClientRect(), r = b.getBoundingClientRect();
-    pGuide.style.left = (r.left - w.left + r.width * .55) + "px";
+    // không cho con trỏ + chữ "bấm chọn" tràn ra ngoài mép phải
+    pGuide.style.left = Math.min(r.left - w.left + r.width * .55, w.width - pGuide.offsetWidth - 2) + "px";
     pGuide.style.top = (r.top - w.top + r.height * .5) + "px";
   };
   if ("ResizeObserver" in window) new ResizeObserver(placeGuide).observe(pWrap);
@@ -647,7 +664,7 @@
     [["#readyStep", "chọn bé"], ["#creamStep", "nền kem"], ["#cookieOrder", p.type === "custom" ? "ảnh bé & đặt hàng" : "đặt hàng"]].forEach(([sel, t]) => {
       if (!$(sel).hidden) $(sel + " .box-h").textContent = `[ ${n++} ] ${t}`;
     });
-    const gk = pid === "moc-khoa-resin" ? "key" : "cookie", car = $("#cookieCar");
+    const gk = "cookie", car = $("#cookieCar");
     if (car.dataset.key !== gk) loadCarousel(car, gk, gk === "key" ? "Keychain thủ công" : "Cookie");
     paintCookieNote(pid);
     $("#cookieError").textContent = "";
@@ -772,6 +789,43 @@
   };
   drawPreviews(); renderCookieSum();
 
+  /* ============ KEYCHAIN CUSTOM (trang riêng) ============ */
+  const keyP = byId("moc-khoa-resin"), keyForm = $("#keyForm"), keyFile = $("#keyFile");
+  let keyQty = 1, keyPending = [];
+  $("#keyPrice").textContent = k(keyP.price);
+  $("#keyTags").innerHTML = [["chất liệu", "resin vẽ tay"], ["vẽ từ", "ảnh bé bạn gửi"], ["giá", k(keyP.price)], ["duyệt bản vẽ", "trước khi làm"], ["hoàn thiện", keyP.lead]]
+    .map(([a, b]) => `<li><span class="k">${esc(a)}</span><span class="v">${esc(b)}</span></li>`).join("");
+  const keyTotal = () => { $("#keyQty").textContent = keyQty; $("#keyTotal").textContent = fmt(keyP.price * keyQty); };
+  keyForm.querySelectorAll("[data-q]").forEach(b => b.onclick = () => { keyQty = Math.max(1, Math.min(20, keyQty + +b.dataset.q)); keyTotal(); });
+  function drawKeyPreviews() {
+    const box = $("#keyPreviews");
+    box.innerHTML = keyPending.map((src, i) => `<div><img src="${src}" alt="Ảnh bé ${i + 1}"><button type="button" data-rm="${i}" aria-label="Xoá ảnh ${i + 1}">×</button></div>`).join("");
+    box.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { keyPending.splice(+b.dataset.rm, 1); drawKeyPreviews(); });
+    $("#keyUploader").textContent = keyPending.length >= 3 ? "Đủ 3 ảnh rồi nè" : `+ chọn ảnh bé (${keyPending.length}/3)`;
+  }
+  $("#keyUploader").onclick = () => { if (keyPending.length < 3) keyFile.click(); };
+  keyFile.onchange = async () => {
+    for (const f of [...keyFile.files]) {
+      if (keyPending.length >= 3) break;
+      try { keyPending.push(await shrink(f)); } catch (e) { toast("Không đọc được ảnh này, bạn thử ảnh khác nhen"); }
+    }
+    keyFile.value = ""; drawKeyPreviews(); $("#keyError").textContent = "";
+  };
+  keyForm.onsubmit = e => {
+    e.preventDefault();
+    const err = $("#keyError"); err.textContent = "";
+    const petName = keyForm.petName.value.trim(), sp = keyForm.querySelector('input[name="species"]:checked');
+    if (!keyPending.length) { err.textContent = "Bạn tải 1–3 ảnh bé lên giúp mình nhé."; return; }
+    if (!petName || !sp) { err.textContent = "Bạn điền tên bé và chọn bé là mèo hay cún nhé."; return; }
+    const options = { petName, species: sp.value }, breed = keyForm.breed.value.trim(), note = keyForm.note.value.trim();
+    if (breed) options.breed = breed;
+    if (note) options.note = note;
+    addToCart({ productId: keyP.id, qty: keyQty, options, images: keyPending.slice() });
+    keyPending = []; drawKeyPreviews(); keyForm.reset(); keyQty = 1; keyTotal();
+  };
+  drawKeyPreviews(); keyTotal();
+  loadCarousel($("#keyCar"), "key", "Keychain thủ công");
+
   /* ============ NOEL ============ */
   $("#noelLink").href = C.contact.noelDesigner;
   renderGallery($("#noelGallery"), "noel", "Noel Charm 2026");
@@ -786,9 +840,18 @@
   $("#stampTree").innerHTML = C.noelTree.map((src, i) => `<span class="stamp ${ST[i]}" style="--r:${SR[i]}deg"><img src="${src}" alt="" loading="lazy"></span>`).join("");
   const noelSeen = () => setTimeout(() => $("#noel").classList.add("seen"), 60);
   $("#contactLinks").innerHTML = [
-    ["[ INSTAGRAM ]", C.contact.instagram], ["[ FACEBOOK ]", C.contact.facebook],
-    ["[ TIKTOK ]", C.contact.tiktok], ["[ ZALO " + C.contact.zaloNumber + " ]", C.contact.zalo]
+    ["Instagram", C.contact.instagram], ["Facebook", C.contact.facebook],
+    ["TikTok", C.contact.tiktok], ["Zalo " + C.contact.zaloNumber, C.contact.zalo]
   ].map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`).join("");
+  // footer: liên hệ + nút giỏ hàng
+  const handle = u => "@" + u.replace(/\/+$/, "").split("/").pop().replace(/^@/, "");
+  $("#footContact").insertAdjacentHTML("beforeend", [
+    ["Instagram", handle(C.contact.instagram), C.contact.instagram],
+    ["Facebook", handle(C.contact.facebook), C.contact.facebook],
+    ["TikTok", handle(C.contact.tiktok), C.contact.tiktok],
+    ["Zalo", C.contact.zaloNumber, C.contact.zalo]
+  ].map(([n, v, u]) => `<a href="${u}" target="_blank" rel="noopener"><b>${n}</b> ${esc(v)}</a>`).join(""));
+  $("#footCart").onclick = () => $("#cartBtn").click();
 
   /* resize ảnh trên máy khách cho nhẹ (≤1600px, JPEG) */
   function shrink(file, maxSide = 1600, q = 0.85) {
@@ -840,7 +903,7 @@
   function thumbOf(it) {
     const p = byId(it.productId), o = it.options;
     if (it.images?.length) return it.images[0];
-    if (o.topColor) { const t = colorBy(o.topColor), d = colorBy(o.baseColor); if (t && d && it.productId === "bat-sao" && t.slug !== "trang" && d.slug !== "trang") return `images/mix/sao/${t.slug}--${d.slug}.jpg`; if (t) return `images/mix/bong/top-${t.slug}.jpg`; }
+    if (o.topColor) { const t = colorBy(o.topColor), d = colorBy(o.baseColor), jb = C.bowls.find(b => b.id === "bat-jelly"); if (t && d && it.productId === "bat-jelly" && jb.tops.includes(t.name) && jb.bases.includes(d.name)) return `images/mix/jelly/${t.slug}--${d.slug}.jpg`; if (t && d && it.productId === "bat-sao" && t.slug !== "trang" && d.slug !== "trang") return `images/mix/sao2/${t.slug}.jpg`; if (t) return `images/mix/bong/top-${t.slug}.jpg`; }
     const m = /bé (cún|mèo) (\d+)/.exec(o.design || "");
     if (m) return `images/cookie/${m[1] === "cún" ? "cun" : "meo"}-${m[2]}.webp`;
     return p.images[0];
@@ -924,7 +987,7 @@
     ["#folder", () => folderOpen ? "cất vào folder" : "mở folder"], [".cluster", "mở xấp ảnh"], [".flip-hit", "lật ảnh"], [".back", "lật lại"],
     [".ov-card", "xem & đặt"], [".pbtn", "chọn món này"], [".ck", "chọn bé này"], ["#breedList button", "chọn bé này"],
     [".btab", "đổi dáng bát"], [".sw-item", "chọn màu"], [".pat", "chọn hoạ tiết"], [".cbar", "chọn màu kem"], [".base-btn", "chọn đế bánh"],
-    ["#btnMess", "xáo tung"], [".g-thumb", "xem ảnh lớn"], [".car-nav", "ảnh khác"], [".carousel img", "xem ảnh lớn"], ["#ovToggle", () => ovBody.hidden ? "mở danh sách" : "thu gọn"], ["#tabs [role=tab]", "mở tab"], [".uploader", "tải ảnh bé"]
+    ["#btnMess", "xáo tung"], [".g-thumb", "xem ảnh lớn"], [".car-nav", "ảnh khác"], [".carousel img", "xem ảnh lớn"], [".uploader", "tải ảnh bé"]
   ];
   const hint = $("#cursorHint");
   if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
@@ -942,5 +1005,5 @@
   }
 
   renderCart();
-  if (location.hash) goTo(location.hash);
+  showPage(location.hash.slice(1), false);
 })();

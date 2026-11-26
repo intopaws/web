@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Meow+Script&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=57">
+<link rel="stylesheet" href="styles.css?v=96">
 </head>
 <body>
 <a class="skip" href="#main">Bỏ qua, vào nội dung chính</a>
@@ -39,19 +39,22 @@
   <a href="#top" class="brand" aria-label="intoPaws Studio, về đầu trang">
     <img src="images/logo-main.svg" alt="intoPaws" width="66" height="38">
   </a>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu" aria-label="Mở menu các trang"><span class="mb-ico" aria-hidden="true"><i></i><i></i><i></i></span><span class="mb-lbl mono">menu</span><span id="menuCur">trang chủ</span><span class="mb-car" aria-hidden="true">▾</span></button>
   <nav class="menu-inner" id="menu" aria-label="Menu chính">
     <a href="#top" data-nav="top">trang chủ</a>
-    <a href="#tat-ca" data-nav="tat-ca">sản phẩm</a>
+    <a href="#tat-ca" data-nav="tat-ca">tất cả sản phẩm</a>
     <a href="#bat" data-nav="bat">bát ăn</a>
+    <a href="#keychain" data-nav="keychain">keychain custom</a>
     <a href="#cookie" data-nav="cookie">cookie</a>
     <a href="#noel" data-nav="noel">noel</a>
-    <a href="#dat-hang" data-nav="dat-hang">đặt hàng</a>
+    <a href="#dat-hang" data-nav="dat-hang">cách đặt hàng</a>
   </nav>
-  <button class="cart-btn" id="cartBtn" aria-label="Mở giỏ hàng"><span class="mono">giỏ</span><b id="cartCount">0</b></button>
+  <button class="cart-btn" id="cartBtn" aria-label="Mở giỏ hàng"><svg class="cart-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="mono cart-txt">giỏ</span><b id="cartCount">0</b></button>
 </header>
 
 <main id="main">
-  <div class="marquee" id="top" aria-label="Các dòng sản phẩm">
+  <div class="page" id="top" data-page="top">
+  <div class="marquee" aria-label="Các dòng sản phẩm">
     <div class="marquee-track" id="marquee"></div>
   </div>
 
@@ -88,6 +91,7 @@
       </div>
     </div>
   </section>
+  </div>
 
   <!-- lớp mở chi tiết một xấp -->
   <div class="desk" id="desk" role="dialog" aria-modal="true" aria-labelledby="deskTitle" hidden>
@@ -95,8 +99,8 @@
       <div class="desk-bar">
         <div><span class="mono label" id="deskCount">[ 06 ẢNH ]</span><h2 class="title" id="deskTitle">bát ăn</h2></div>
         <div class="desk-btns mono">
-          <button class="pill" id="deskShuffle" aria-label="Xáo lại các ảnh">[ xáo lại ]</button>
-          <button class="pill" id="deskClose" aria-label="Đóng, gom ảnh lại">[ gom lại × ]</button>
+          <button class="dbtn" id="deskShuffle" aria-label="Xáo lại các ảnh"><span aria-hidden="true">↻</span> xáo lại</button>
+          <button class="dbtn dbtn-main" id="deskClose" aria-label="Đóng, gom ảnh lại"><span aria-hidden="true">×</span> đóng lại</button>
         </div>
       </div>
       <p class="desk-hint small">Chạm vào một tấm ảnh để lật mặt sau, chạm lần nữa để lật lại nhé.</p>
@@ -105,13 +109,10 @@
   </div>
 
   <!-- ===== TẤT CẢ SẢN PHẨM: nhìn một lần là nắm hết ===== -->
-  <section class="wrap" id="tat-ca" aria-labelledby="allTitle">
+  <section class="wrap page" id="tat-ca" data-page="tat-ca" aria-labelledby="allTitle" hidden>
     <div class="frame-page overview">
-      <button class="ov-toggle" id="ovToggle" aria-expanded="false" aria-controls="ovBody">
-        <span><span class="mono label">[ TẤT CẢ SẢN PHẨM · 7 MÓN ]</span><span class="title big" id="allTitle">mình có gì nè</span></span>
-        <span class="ov-btn mono" id="ovBtnTxt">mở ra +</span>
-      </button>
-      <div class="ov-body" id="ovBody" hidden>
+      <header class="p-head"><div><span class="mono label">[ TẤT CẢ SẢN PHẨM · 7 MÓN ]</span><h2 class="title big" id="allTitle">mình có gì nè</h2></div><p class="kicker script"><span class="ln">bấm vào một món</span> <span class="ln">để xem &amp; đặt</span></p></header>
+      <div class="ov-body" id="ovBody">
         <div class="ov-grid" id="overview"></div>
         <p class="ov-foot mono">[ ship 14K toàn quốc · freeship đơn từ 399K · chuyển khoản khi shop nhắn xác nhận ]</p>
       </div>
@@ -120,18 +121,12 @@
 
   <!-- ===== CÁC TAB SẢN PHẨM ===== -->
   <section class="wrap shop" aria-label="Cửa hàng">
-    <div class="tabs mono" role="tablist" aria-label="Chọn nhóm sản phẩm" id="tabs">
-      <button role="tab" id="tab-bat" aria-controls="bat" aria-selected="true">[ bát ăn ]</button>
-      <button role="tab" id="tab-cookie" aria-controls="cookie" aria-selected="false" tabindex="-1">[ cookie &amp; keychain ]</button>
-      <button role="tab" id="tab-noel" aria-controls="noel" aria-selected="false" tabindex="-1">[ noel ]</button>
-      <button role="tab" id="tab-dat-hang" aria-controls="dat-hang" aria-selected="false" tabindex="-1">[ đặt hàng ]</button>
-    </div>
 
     <!-- ===== BÁT ===== -->
-    <div id="bat" class="frame-page panel" role="tabpanel" aria-labelledby="tab-bat">
+    <div id="bat" class="frame-page panel page" data-page="bat" hidden>
       <header class="p-head">
         <div><span class="mono label">[ 01 — BÁT ĂN CHỐNG KIẾN ]</span><h2 class="title big">bát ăn</h2></div>
-        <p class="kicker script">khắc tên bé miễn phí, phối màu tuỳ ý</p>
+        <p class="kicker script"><span class="ln">khắc tên bé miễn phí,</span> <span class="ln">phối màu tuỳ ý</span></p>
       </header>
       <div class="two-col">
         <div class="col">
@@ -199,10 +194,76 @@
       </div>
     </div>
 
-    <!-- ===== COOKIE & KEYCHAIN ===== -->
-    <div id="cookie" class="frame-page panel" role="tabpanel" aria-labelledby="tab-cookie" hidden>
+    <!-- ===== KEYCHAIN CUSTOM ===== -->
+    <div id="keychain" class="frame-page panel page" data-page="keychain" hidden>
       <header class="p-head">
-        <div><span class="mono label">[ 02 — COOKIE &amp; KEYCHAIN ]</span><h2 class="title big slate">custom</h2><p class="caramel-i">vẽ từ chính bé cưng nhà bạn</p></div>
+        <div><span class="mono label">[ 02 — KEYCHAIN CUSTOM ]</span><h2 class="title big">keychain</h2><p class="caramel-i">resin vẽ tay từ ảnh bé nhà bạn</p></div>
+        <p class="kicker script"><span class="ln">mỗi bé một chiếc,</span> <span class="ln">không trùng ai</span></p>
+      </header>
+      <div class="two-col">
+        <div class="col">
+          <div class="box">
+            <p class="box-h mono">[ 1 ] xem mẫu</p>
+            <div class="bowl-stage ck-stage">
+              <span class="sheet st1" aria-hidden="true"></span><span class="sheet st2" aria-hidden="true"></span>
+              <figure class="bowl-hero carousel" id="keyCar">
+                <span class="car-img"><img alt=""></span>
+                <span class="car-bar">
+                  <button type="button" class="car-nav prev" aria-label="Ảnh trước">‹</button>
+                  <span class="car-mid"><span class="car-count mono"></span><button type="button" class="spread-btn mono" data-for="keyCar" data-spread="keySpread" aria-expanded="false">[ dàn ra tất cả ảnh ]</button></span>
+                  <button type="button" class="car-nav next" aria-label="Ảnh sau">›</button>
+                </span>
+              </figure>
+              <article class="vellum bowl-card ck-card key-card">
+                <svg class="heart" aria-hidden="true"><use href="#heartclip"/></svg>
+                <p class="v-title">keychain thủ công</p>
+                <ul class="v-list mono spec-list" id="keyTags"></ul>
+              </article>
+              <div class="price-tape" id="keyPrice">199K</div>
+            </div>
+            <div class="spread" id="keySpread" hidden></div>
+          </div>
+        </div>
+
+        <form class="col key-form" id="keyForm" novalidate>
+          <div class="box">
+            <p class="box-h mono">[ 2 ] gửi ảnh bé &amp; đặt hàng</p>
+            <ol class="how mono key-how">
+              <li><b>[1]</b> tải 1–3 ảnh bé rõ mặt</li>
+              <li><b>[2]</b> shop vẽ bản phác, gửi bạn duyệt qua IG/Zalo</li>
+              <li><b>[3]</b> duyệt xong mình làm, 4–7 ngày</li>
+            </ol>
+            <div class="field">
+              <span class="mono">[ ẢNH BÉ · 1–3 ẢNH RÕ MẶT ]*</span>
+              <button type="button" class="uploader" id="keyUploader" aria-label="Chọn ảnh bé từ máy">+ chọn ảnh bé</button>
+              <input type="file" id="keyFile" accept="image/*" multiple hidden>
+              <div class="previews" id="keyPreviews"></div>
+            </div>
+            <div class="two">
+              <label class="field"><span class="mono">[ TÊN BÉ ]*</span><input name="petName" maxlength="40"></label>
+              <label class="field"><span class="mono">[ GIỐNG ]</span><input name="breed" maxlength="60" placeholder="Corgi, Anh lông ngắn…"></label>
+            </div>
+            <fieldset class="field species"><legend class="mono">[ BÉ LÀ ]*</legend>
+              <label><input type="radio" name="species" value="Mèo"><span>Mèo</span></label>
+              <label><input type="radio" name="species" value="Cún"><span>Cún</span></label>
+              <label><input type="radio" name="species" value="Khác"><span>Khác</span></label>
+            </fieldset>
+            <label class="field"><span class="mono">[ YÊU CẦU THÊM ]</span><input name="note" maxlength="200" placeholder="Chữ khắc mặt sau, màu dây, phụ kiện…"></label>
+            <div class="buy">
+              <div class="qty" aria-label="Số lượng"><button type="button" data-q="-1" aria-label="Bớt một">−</button><b id="keyQty" aria-live="polite">1</b><button type="button" data-q="1" aria-label="Thêm một">+</button></div>
+              <p class="total" id="keyTotal">199.000đ</p>
+              <button class="btn" type="submit" aria-label="Thêm keychain vào giỏ">Thêm vào giỏ</button>
+            </div>
+            <p class="form-error" id="keyError" role="alert"></p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== COOKIE & KEYCHAIN ===== -->
+    <div id="cookie" class="frame-page panel page" data-page="cookie" hidden>
+      <header class="p-head">
+        <div><span class="mono label">[ 03 — COOKIE ]</span><h2 class="title big slate">custom</h2><p class="caramel-i">vẽ từ chính bé cưng nhà bạn</p></div>
         <p class="incl">giá đã gồm<br><span class="hl-blue">thiết kế</span></p>
       </header>
       <div class="two-col">
@@ -309,7 +370,7 @@
     </div>
 
     <!-- ===== NOEL ===== -->
-    <div id="noel" class="frame-page panel noel" role="tabpanel" aria-labelledby="tab-noel" hidden>
+    <div id="noel" class="frame-page panel noel page" data-page="noel" hidden>
       <div class="two-col noel-cols">
         <div class="envelope-scene" aria-hidden="true">
           <span class="envelope"><span class="flap"></span></span>
@@ -321,7 +382,7 @@
           <svg class="st s1" viewBox="0 0 24 24"><use href="#star"/></svg><svg class="st s2" viewBox="0 0 24 24"><use href="#star"/></svg><svg class="st s3" viewBox="0 0 24 24"><use href="#star"/></svg>
         </div>
         <div class="noel-text">
-          <span class="mono label red">[ 03 — NOEL 2026 ]</span>
+          <span class="mono label red">[ 04 — NOEL 2026 ]</span>
           <h2 class="noel-hand"><span class="r">Noel này</span><br><span class="hlw">bạn tự tay thiết kế</span><br><span class="hlw">bảng tên mới</span> <span class="s">cho bé chưa?</span></h2>
           <p>Chọn dáng, bé, màu lông, tên và charm nhỏ trên trang thiết kế riêng của mình nhé.</p>
           <p class="noel-price"><span class="hl red">129K</span> <span class="mono">[ MỘT CHARM ]</span></p>
@@ -333,24 +394,56 @@
     </div>
 
     <!-- ===== ĐẶT HÀNG ===== -->
-    <div id="dat-hang" class="frame-page panel order" role="tabpanel" aria-labelledby="tab-dat-hang" hidden>
-      <header class="p-head"><div><span class="mono label">[ 04 — ĐẶT HÀNG ]</span><h2 class="title big">đặt hàng thế nào nhỉ?</h2></div></header>
+    <div id="dat-hang" class="frame-page panel order page" data-page="dat-hang" hidden>
+      <header class="p-head"><div><span class="mono label">[ 05 — ĐẶT HÀNG ]</span><h2 class="title big">đặt hàng thế nào nhỉ?</h2></div></header>
       <ol class="steps">
         <li class="watercolor step"><span class="mono">[ 01 ]</span><h3>chọn món</h3><p>Chọn bát hoặc cookie, điền tên bé, tải ảnh bé nếu là đơn vẽ theo bé.</p></li>
         <li class="watercolor step"><span class="mono">[ 02 ]</span><h3>shop nhắn bạn</h3><p>Đặt xong, shop nhắn bạn qua IG/Zalo để xác nhận đơn và gửi thông tin chuyển khoản.</p></li>
         <li class="watercolor step"><span class="mono">[ 03 ]</span><h3>mình làm &amp; giao</h3><p>Bát 2–5 ngày, cookie và keychain 4–7 ngày. Đơn vẽ theo bé thì bạn duyệt bản vẽ qua IG/Zalo trước nhé.</p></li>
       </ol>
-      <p class="ship-line mono">[ SHIP 14K TOÀN QUỐC · FREESHIP ĐƠN TỪ 399K ]</p>
-      <p class="contact" id="contactLinks"></p>
+      <div class="order-info">
+        <div class="oi-box"><p class="oi-h mono">phí ship</p><p class="oi-line"><b>14K</b> ship toàn quốc</p><p class="oi-line"><b>freeship</b> đơn từ 399K</p></div>
+        <div class="oi-box"><p class="oi-h mono">nhắn shop</p><p class="contact" id="contactLinks"></p></div>
+      </div>
     </div>
   </section>
+
+  <!-- chuyển trang: trang trước / trang sau -->
+  <nav class="wrap pager mono" id="pager" aria-label="Chuyển trang"></nav>
 </main>
 
 <footer class="footer">
-  <img src="images/logo-main.svg" alt="intoPaws" class="footer-logo" width="100" height="58">
-  <p class="script">custom for pets &amp; you</p>
-  <p class="mono small">[ INTOPAWS STUDIO · TP.HCM ]</p>
-  <button class="pill mono" id="motionBtn" aria-pressed="false" aria-label="Bật hoặc tắt chuyển động trên trang">[ tắt chuyển động ]</button>
+  <div class="f-grid">
+    <div class="f-brand">
+      <img src="images/logo-main.svg" alt="intoPaws" class="footer-logo" width="66" height="38">
+      <p class="f-tag script">custom for pets &amp; you</p>
+      <p class="f-txt">Pet design studio ở TP.HCM. Bát khắc tên bé, keychain vẽ tay và cookie vẽ theo bé.</p>
+    </div>
+    <div class="f-links">
+    <nav class="f-col" aria-label="Sản phẩm">
+      <p class="f-h mono">sản phẩm</p>
+      <a href="#tat-ca">tất cả sản phẩm</a>
+      <a href="#bat">bát ăn</a>
+      <a href="#keychain">keychain custom</a>
+      <a href="#cookie">cookie</a>
+      <a href="#noel">noel</a>
+    </nav>
+    <nav class="f-col" aria-label="Hỗ trợ">
+      <p class="f-h mono">hỗ trợ</p>
+      <a href="#dat-hang">cách đặt hàng</a>
+      <button type="button" class="f-link" id="footCart">giỏ hàng</button>
+      <span>ship 14K toàn quốc</span>
+      <span>freeship đơn từ 399K</span>
+    </nav>
+    <div class="f-col" id="footContact">
+      <p class="f-h mono">liên hệ</p>
+    </div>
+    </div>
+  </div>
+  <div class="f-bottom mono">
+    <span>© 2026 intoPaws Studio · TP.HCM</span>
+    <button class="f-link mono" id="motionBtn" aria-pressed="false" aria-label="Bật hoặc tắt chuyển động trên trang">[ tắt chuyển động ]</button>
+  </div>
 </footer>
 
 <aside id="cartDrawer" class="drawer" aria-hidden="true" aria-label="Giỏ hàng" inert>
@@ -389,7 +482,7 @@
 <!-- con trỏ chuột kèm chữ hướng dẫn (chỉ hiện trên máy tính có chuột) -->
 <div class="cursor-hint" id="cursorHint" aria-hidden="true"><span class="ring"></span><span class="txt mono"></span></div>
 
-<script src="config.js?v=57"></script>
-<script src="app.js?v=57"></script>
+<script src="config.js?v=96"></script>
+<script src="app.js?v=96"></script>
 </body>
 </html>
